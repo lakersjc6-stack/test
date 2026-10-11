@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eff6fb">
+  <title>Summit · Retail workspace</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Summit home"><span class="brand-icon">▲</span><span>summit<span class="brand-dot">.</span></span></a>
+    <div class="workspace-label">YOUR WORKSPACE</div>
+    <nav aria-label="Main navigation">
+      <button data-page="overview"><span class="nav-icon">◫</span>Overview</button>
+      <button data-page="tasks" class="active"><span class="nav-icon">⌘</span>Task groups <span class="nav-count" id="group-count">0</span></button>
+      <button data-page="profiles"><span class="nav-icon">▣</span>Profiles</button>
+      <button data-page="activity"><span class="nav-icon">≋</span>Activity</button>
+    </nav>
+    <div class="workspace-label integrations-label">INTEGRATIONS</div>
+    <nav aria-label="Integrations navigation">
+      <button data-page="accounts"><span class="nav-icon">♙</span>Accounts<span class="soon">Planned</span></button>
+      <button data-page="proxies"><span class="nav-icon">⇄</span>Proxies<span class="soon">Planned</span></button>
+      <button data-page="captcha"><span class="nav-icon">▧</span>CAPTCHA<span class="soon">Planned</span></button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="connection"><span class="status-dot"></span><div>Workspace online<small>Local development · v0.1</small></div></div>
+      <button data-page="settings" class="settings-nav"><span>⚙</span> Settings</button>
+      <div class="user"><span class="avatar">ME</span><div>My workspace<small>Personal workspace</small></div><span class="user-dots">···</span></div>
+    </div>
+  </aside>
+  <main>
+    <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong id="breadcrumb">Task groups</strong></div><div class="header-right"><span class="build-pill">DEVELOPMENT BUILD</span><button id="notification-button" class="icon-button" aria-label="View notifications">♧<span id="notification-count"></span></button><span class="avatar small">ME</span></div></header>
+    <div class="content" id="content"></div>
+    <footer><span><span class="status-dot"></span> Local data saved on this machine</span><span>Summit / An independent retail workspace</span></footer>
+  </main>
+  <dialog id="modal"><div id="modal-content"></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
