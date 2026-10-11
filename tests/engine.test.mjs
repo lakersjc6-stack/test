@@ -9,6 +9,7 @@ import { createApp } from '../server.mjs';
 
 function workspace(options) {
   const engine = new Engine(initialState(), options);
+  engine.state.profiles[0].size = '9'; engine.state.profiles[1].size = '10';
   const group = engine.state.groups[0];
   engine.addTasks(group.id, engine.state.profiles.slice(0, 2).map(p => p.id));
   return { engine, group };

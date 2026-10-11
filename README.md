@@ -1,54 +1,81 @@
-# Summit retail workspace
+# Summit Pokémon Desktop
 
-An independent Alpine-inspired local development application. It implements task groups, multi-product monitor lists, grouped profiles, scheduled starts, activity logs, in-app notifications, and stock-to-cart handoff. It is **not Alpine**, has no commercial bot feature-parity claim, and does not automatically place orders.
+A Windows desktop app focused on Pokémon TCG release preparation, stock monitoring, and notifications. Open it from a desktop shortcut or its executable; no browser dashboard or Node.js installation is needed for the packaged app. Retailer product links intentionally open your normal browser session so you can complete checkout yourself.
 
-## Run
+## Download for Windows
 
-Node.js 22 or newer is required. There are no third-party runtime dependencies.
+1. Open this repository’s **Actions** tab.
+2. Select the latest successful **Build Windows desktop** run for `main`.
+3. Under **Artifacts**, download **Summit-Pokemon-Windows** (GitHub sign-in is required).
+4. Extract the artifact ZIP. Run `Summit-Pokemon-0.2.0-Setup.exe` to install, or extract the inner `Summit-Pokemon-0.2.0-win.zip` and run `Summit Pokemon.exe` for a portable app.
 
-```sh
-cd /workspace/test
+The workflow produces an installer, a portable ZIP, and `SHA256SUMS.txt`. Artifacts expire after 30 days; the workflow can be run again from Actions. The source ZIP under Code → Download ZIP is not the compiled app.
+
+This is an unsigned development build. No code-signing certificate is configured. Windows may show an unknown-publisher prompt; inspect the source and the included SHA256 checksums before choosing whether to run it. The portable Windows archive was built in the cloud; Windows-native runtime and notification behavior still require validation on a Windows machine.
+
+## What works
+
+- Desktop window with an isolated renderer and no Node.js access from the interface.
+- System tray: closing the window hides the app; monitors remain running. Use the tray’s Quit command to stop the app.
+- Windows notifications for stock changes and release reminders; clicking one opens the app.
+- Optional keep-awake protection while monitors are active. The app cannot monitor while the computer is off or manually asleep.
+- Pokémon-focused drop groups, collector groups, and up to ten product links per group.
+- Release planner with user-provided announced times, lead reminders, and one-click creation of a scheduled monitoring group. Start the prepared group to activate its schedule.
+- Optional USD price ceilings. Unknown prices do not match a configured ceiling.
+- Per-product health and bounded retries. One unreadable product does not hide readable stock from another. Three group workers keep a slow retailer from blocking all monitoring.
+- Exponential backoff after errors, from the normal 30-second minimum up to 15 minutes. Successful reads restore the normal interval.
+- Activity logs, local persistence, configuration export without profile emails or addresses, and a Pokémon demo catalog.
+
+## Retailer support and limitations
+
+Pokémon Center US, Target, and Walmart are the first retailers. Their adapters read explicit schema.org Product / Offer availability from public product pages, when supplied. **Live support is unverified:** this cloud environment cannot currently reach those retailer domains. These are product-page parsers, not verified official retailer API integrations.
+
+The parser distinguishes available, preorder, sold out, and unknown. A verification page, blocked request, redirect, missing structured data, ambiguous product identity, or non-Pokémon item produces an error. It does not infer stock from an Add to cart button or a successful HTTP response. Product name, seller, price, regional inventory, quantity limits, and checkout availability must be checked at the retailer. Marketplace offers are not independently seller-verified.
+
+Supported link shapes:
+
+- Pokémon Center US: `https://www.pokemoncenter.com/product/<id>/<optional-slug>`
+- Target: `https://www.target.com/p/<slug>/-/A-<number>`
+- Walmart: `https://www.walmart.com/ip/<slug>/<number>`
+
+Release times are entered by you based on confirmed retailer announcements. The app does not discover every upcoming product or promise to hit every drop. Monitoring only covers the product links you add. It does not bypass queues, solve CAPTCHA, store retailer passwords, or automatically submit orders or payments. Store-specific authenticated inventory and checkout flows are not implemented.
+
+Legacy Kith/Bodega/Undefeated adapters are retained for existing saved groups but are omitted from the new-group store picker.
+
+## Try the demo
+
+1. Open Drop groups → Pokémon TCG demo.
+2. Add tasks → Select Pokémon → Create tasks.
+3. Start group, then open Monitor list → Simulate restock.
+4. Verify Demo stock status, notifications, and product details.
+5. Pause the group when finished. Demo results are simulated and never represent successful purchases.
+
+## Release-day preparation
+
+Add links for the exact Pokémon products you want. Use a reasonable price ceiling. Add confirmed release times in Release planner and prepare/start the scheduled monitoring group. Keep the app running and your network connected; inspect Monitor list for readable versus unknown products. Sign into your normal retailer sessions before the release. Follow an alert to the product page and complete checkout manually. Faster polling alone does not establish better coverage or checkout success.
+
+## Develop from source
+
+Node.js 24 and npm are recommended for dependency installation and packaging. On Windows:
+
+```powershell
+npm ci
 npm test
 npm start
 ```
 
-The server listens on loopback port 3000. Use `PORT` to choose another port. Check readiness with `curl -fsS http://127.0.0.1:3000/api/health`. The cloud onboarding UI does not expose a localhost preview; browser access requires a development environment with local access or its supported port forwarding.
+`npm start` opens the desktop app. Build installer and portable packages with `npm run build:win`. Build only the portable ZIP with `npm run build:win:portable`. Linux can cross-build the ZIP; NSIS installer generation requires Wine or a Windows runner. The included GitHub Actions workflow builds on Windows.
 
-## Try the working demo
+For backend-only development, `npm run dev:server` runs the optional local server on port 3000. It is not the normal end-user entry point. `PORT` selects another backend development port. The desktop app chooses its own ephemeral loopback port and requires a random per-process session token on all HTTP requests.
 
-1. Open Task groups and select Weekend rotation.
-2. Add tasks, select the Everyday profile group, and create the tasks.
-3. Start the group. Tasks check the two simulated products.
-4. Open Monitor list and select Simulate restock. Tasks move to Demo stock and generate notifications. These are simulated availability results, not successful orders.
-5. Open task details, pause the group, or inspect the Activity page.
+## Data and startup
 
-Create additional profiles, organize them into groups, create task groups with up to ten product handles, and set a future scheduled start. Scheduling uses the browser’s local time and persists as UTC. Select tasks to delete them together. Use Settings to control notifications and export a configuration without emails or address notes.
+The desktop workspace is saved in the Electron user-data directory under your Windows account, normally `%APPDATA%/summit-pokemon-desktop/workspace.json`. Never enter payment credentials or passwords. Contact details are local plaintext and are not automatically submitted to retailers. The backend development workspace remains under ignored `.local/workspace.json`.
 
-## Live-store integration status
+Monitors intentionally pause on app restart. Review and resume them explicitly. Release reminders operate while the app is running and are persisted to avoid repeating a sent reminder. Notifications may be affected by Windows notification settings / Do Not Disturb. No Discord integration is configured.
 
-Kith, Bodega, and Undefeated appear among Alpine’s publicly advertised retailers. Summit has public product endpoint adapters configured for those domains; **these have not been validated against a live product in this cloud environment**. Availability and access depend on the store. The store picker explicitly labels these adapters as unverified.
+## Validation
 
-For a selected live store, provide its HTTPS `/products/product-handle` URL or handle. The monitor requests `/products/product-handle.js`, checks available variants and exact preferred size options, and generates a `/cart/variant:quantity` link for a match. You open the link and complete checkout yourself. No order, payment, login, CAPTCHA solving, or proxy routing is automated. Non-200 responses, challenges, redirects, unsupported schemas, and request timeouts appear as task errors. Requests are not retried faster than the configured delay; the minimum delay is 30 seconds. The selected stores must be accessible through the environment’s network policy.
+`npm test` runs 18 tests covering stock transitions, exact matching, schedules, cancellation, persistence, HTTP workflows, product URL validation, unknown/challenge handling, price ceilings, partial product failures, retry backoff, reminders, and desktop session/link security.
 
-Multiple products are fetched once per group, rather than once per profile. Requests are sequential with bounded response sizes and timeouts. Hostnames and product handles are restricted to the configured store list. Duplicate task creation is prevented. New stock alerts are emitted on changes, rather than on every poll.
-
-## Local data and security
-
-Workspace data is persisted atomically under ignored `.local/workspace.json`, with restrictive permissions. `SUMMIT_DATA_FILE` can select a different file. Active monitors pause when the server restarts; review and start them again. No payment details, passwords, or proxy credentials should be entered. Profile emails and address notes are stored as local plaintext, are not submitted to stores, and are omitted from configuration exports.
-
-This is a single-user loopback service, with no authentication. It validates Host and Origin headers and serves only explicitly listed static assets. Keep the default loopback binding. Add authentication and encrypted credential storage before any multi-user or remote deployment.
-
-## Tests
-
-`npm test` exercises shared product checks, exact-size stock matching, stock-transition notifications, polling intervals, scheduling, cancellation of stale results, store failures and recovery, persistent reload, and HTTP create/start/stop workflows. Browser smoke tests were also run during development; these do not require additional runtime packages.
-
-## Features still requiring separate implementation
-
-- Store-specific account authentication and secure session storage.
-- Proxy pools and connection testing.
-- Manual challenge session management.
-- Supported automated checkout and payment integration.
-- Discord notifications, licensing, signed desktop packaging and auto-update.
-- Commercial support operations and release guides.
-
-Alpine’s marketing page and screenshots establish visible features, not the details of its private checkout implementation. REA was researched but is not used or installed by this project; this application was written from scratch.
+A real Electron desktop smoke test was run on Linux under a virtual display. It exercises the Pokémon demo, release planning, scheduled groups, notification settings, the isolated renderer, and close-to-tray behavior. This does not establish Windows-native toast delivery or successful retail checkout. Live retailer access remains blocked and unverified.

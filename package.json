@@ -1,11 +1,33 @@
 {
-  "name": "summit-retail-workspace",
-  "version": "0.1.0",
+  "name": "summit-pokemon-desktop",
+  "version": "0.2.0",
+  "description": "Windows desktop release planner and Pokémon stock monitor",
+  "author": "Summit",
   "private": true,
   "type": "module",
+  "main": "desktop/main.mjs",
   "engines": { "node": ">=22" },
   "scripts": {
-    "start": "node server.mjs",
-    "test": "node --test tests/*.test.mjs"
+    "start": "electron .",
+    "dev:server": "node server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:desktop": "node scripts/desktop-smoke.mjs",
+    "build:win": "electron-builder --win nsis zip --x64",
+    "build:win:portable": "electron-builder --win zip --x64",
+    "build:win:dir": "electron-builder --win --x64 --dir"
+  },
+  "devDependencies": {
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3",
+    "playwright": "1.64.0"
+  },
+  "build": {
+    "appId": "com.summit.pokemon",
+    "productName": "Summit Pokemon",
+    "directories": { "output": "dist" },
+    "files": ["desktop/**/*", "lib/**/*", "public/**/*", "server.mjs", "package.json"],
+    "asar": true,
+    "win": { "target": "nsis", "artifactName": "Summit-Pokemon-${version}-win.${ext}", "signAndEditExecutable": false },
+    "nsis": { "artifactName": "Summit-Pokemon-${version}-Setup.${ext}", "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "createStartMenuShortcut": true }
   }
 }

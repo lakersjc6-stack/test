@@ -5,7 +5,7 @@ import { resolve, join } from 'node:path';
 import { Engine, stores } from './lib/engine.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
-export function createApp(engine) {
+export function createApp(engine, { desktop = false, sessionToken } = {}) {
   const send = (res, status, data) => { res.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(JSON.stringify(data)); };
   return createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -15,9 +15,10 @@ export function createApp(engine) {
       const host = req.headers.host || '';
       if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)) return send(res, 403, { error: 'Local access only' });
       if (req.headers.origin && req.headers.origin !== `http://${host}`) return send(res, 403, { error: 'Cross-origin access denied' });
+      if (sessionToken && req.headers['x-summit-session'] !== sessionToken) return send(res, 403, { error: 'Desktop session required' });
       const pathname = new URL(req.url, 'http://localhost').pathname;
-      if (req.method === 'GET' && pathname === '/api/state') return send(res, 200, { ...engine.state, stores });
-      if (req.method === 'GET' && pathname === '/api/health') return send(res, 200, { ok: true, version: '0.1.0' });
+      if (req.method === 'GET' && pathname === '/api/state') return send(res, 200, { ...engine.state, stores, desktop });
+      if (req.method === 'GET' && pathname === '/api/health') return send(res, 200, { ok: true, version: '0.2.0' });
       if (req.method === 'POST' && pathname.startsWith('/api/')) {
         if (!(req.headers['content-type'] || '').startsWith('application/json')) return send(res, 415, { error: 'Use application/json' });
         let raw = ''; for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > 100_000) return send(res, 413, { error: 'Request too large' }); }
@@ -32,7 +33,10 @@ export function createApp(engine) {
           case '/api/demo-stock': { const group = engine.group(body.id); if (group.store !== 'demo') throw new Error('Demo controls only apply to demo stores'); group.demoStock = !group.demoStock; engine.lastPoll.delete(group.id); break; }
           case '/api/profiles': result = engine.addProfile(body); break;
           case '/api/profiles/delete': if (engine.state.tasks.some(t => t.profileId === body.id)) throw new Error('Remove this profile’s tasks before deleting it'); engine.state.profiles = engine.state.profiles.filter(p => p.id !== body.id); break;
-          case '/api/settings': if (typeof body.notifications === 'boolean') engine.state.settings.notifications = body.notifications; if (typeof body.sound === 'boolean') engine.state.settings.sound = body.sound; break;
+          case '/api/releases': result = engine.addRelease(body); break;
+          case '/api/releases/delete': engine.state.releases = engine.state.releases.filter(r => r.id !== body.id); break;
+          case '/api/releases/prepare': result = engine.prepareRelease(body.id); break;
+          case '/api/settings': for (const key of ['notifications', 'sound', 'desktopNotifications', 'keepAwake']) if (typeof body[key] === 'boolean') engine.state.settings[key] = body[key]; break;
           case '/api/notifications/read': for (const n of engine.state.notifications) n.read = true; break;
           default: return send(res, 404, { error: 'Unknown endpoint' });
         }

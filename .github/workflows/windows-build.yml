@@ -1,0 +1,37 @@
+name: Build Windows desktop
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Verify monitoring and API workflows
+        run: npm test
+      - name: Verify real desktop workflows
+        run: npm run test:desktop
+      - name: Build Windows installer
+        run: npm run build:win
+      - name: Record installer checksum
+        shell: pwsh
+        run: |
+          Get-FileHash dist/*Setup.exe,dist/*win.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $([System.IO.Path]::GetFileName($_.Path))" } | Set-Content dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Summit-Pokemon-Windows
+          path: |
+            dist/*Setup.exe
+            dist/*win.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
