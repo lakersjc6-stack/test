@@ -11,7 +11,7 @@ A Windows desktop app focused on Pokémon TCG release preparation, stock monitor
 
 The workflow produces an installer, a portable ZIP, and `SHA256SUMS.txt`. Artifacts expire after 30 days; the workflow can be run again from Actions. The source ZIP under Code → Download ZIP is not the compiled app.
 
-This is an unsigned development build. No code-signing certificate is configured. Windows may show an unknown-publisher prompt; inspect the source and the included SHA256 checksums before choosing whether to run it. The portable Windows archive was built in the cloud; Windows-native runtime and notification behavior still require validation on a Windows machine.
+This is an unsigned development build. No code-signing certificate is configured. Windows may show an unknown-publisher prompt; inspect the source and the included SHA256 checksums before choosing whether to run it. The portable Windows archive was built in the cloud; Desktop UI workflows were also exercised on the Windows GitHub runner. Notification delivery under your own Windows settings still requires a manual check.
 
 ## What works
 
@@ -64,7 +64,7 @@ npm test
 npm start
 ```
 
-`npm start` opens the desktop app. Build installer and portable packages with `npm run build:win`. Build only the portable ZIP with `npm run build:win:portable`. Linux can cross-build the ZIP; NSIS installer generation requires Wine or a Windows runner. The included GitHub Actions workflow builds on Windows.
+`npm start` opens the desktop app. Build installer and portable packages with `npm run build:win`. Build only the portable ZIP with `npm run build:win:portable`. Linux can cross-build the ZIP; NSIS installer generation requires Wine or a Windows runner. The included GitHub Actions workflow builds on Windows. Build scripts explicitly disable automatic GitHub Release publication; output is delivered through Actions artifacts.
 
 For backend-only development, `npm run dev:server` runs the optional local server on port 3000. It is not the normal end-user entry point. `PORT` selects another backend development port. The desktop app chooses its own ephemeral loopback port and requires a random per-process session token on all HTTP requests.
 
@@ -78,4 +78,4 @@ Monitors intentionally pause on app restart. Review and resume them explicitly. 
 
 `npm test` runs 18 tests covering stock transitions, exact matching, schedules, cancellation, persistence, HTTP workflows, product URL validation, unknown/challenge handling, price ceilings, partial product failures, retry backoff, reminders, and desktop session/link security.
 
-A real Electron desktop smoke test was run on Linux under a virtual display. It exercises the Pokémon demo, release planning, scheduled groups, notification settings, the isolated renderer, and close-to-tray behavior. This does not establish Windows-native toast delivery or successful retail checkout. Pokémon Center stock reads are blocked by retailer verification; live product monitoring remains unverified.
+Real Electron desktop smoke tests were run on Linux under a virtual display and on the Windows GitHub runner. It exercises the Pokémon demo, release planning, scheduled groups, notification settings, the isolated renderer, and close-to-tray behavior. These tests do not establish notification delivery under your Windows settings or successful retail checkout. Pokémon Center stock reads are blocked by retailer verification; live product monitoring remains unverified.
