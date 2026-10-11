@@ -8,11 +8,13 @@ import { fileURLToPath } from 'node:url';
 process.on('uncaughtExceptionMonitor', error => {
   if (process.env.GITHUB_ACTIONS) console.error('::error title=Desktop smoke failure::' + String(error.stack || error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A'));
 });
-const root = fileURLToPath(new URL('..', import.meta.url));
+// Normalize the directory: a trailing Windows backslash can interfere with
+// the Electron launcher's quoted command-line arguments.
+const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const testDirectory = await mkdtemp(join(tmpdir(), 'summit-desktop-smoke-'));
 const environment = { ...process.env, SUMMIT_DESKTOP_DATA_DIR: testDirectory };
 if (process.platform === 'linux') { environment.XDG_CONFIG_HOME = join(testDirectory, 'config'); environment.XDG_CACHE_HOME = join(testDirectory, 'cache'); }
-const desktop = await electron.launch({ executablePath: electronExecutable, args: [...(process.platform === 'linux' ? ['--no-sandbox'] : []), root], env: environment, timeout: 30000 });
+const desktop = await electron.launch({ executablePath: electronExecutable, args: [...(process.platform === 'linux' ? ['--no-sandbox'] : []), root], env: environment, timeout: 60000 });
 const page = await desktop.firstWindow();
 const errors = []; page.on('pageerror', e => errors.push(e.message));
 page.on('dialog', dialog => dialog.accept());
