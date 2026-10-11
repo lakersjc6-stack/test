@@ -28,7 +28,7 @@ This is an unsigned development build. No code-signing certificate is configured
 
 ## Retailer support and limitations
 
-Pokémon Center US, Target, and Walmart are the first retailers. Their adapters read explicit schema.org Product / Offer availability from public product pages, when supplied. **Live support is unverified:** this cloud environment cannot currently reach those retailer domains. These are product-page parsers, not verified official retailer API integrations.
+Pokémon Center US, Target, and Walmart are the first retailers. Their adapters read explicit schema.org Product / Offer availability from public product pages, when supplied. **Live product monitoring is unverified:** Pokémon Center is reachable but returns a verification page. A Target search-page response provided no explicit product stock data. These requests do not validate a real product’s availability. These are product-page parsers, not verified official retailer API integrations.
 
 The parser distinguishes available, preorder, sold out, and unknown. A verification page, blocked request, redirect, missing structured data, ambiguous product identity, or non-Pokémon item produces an error. It does not infer stock from an Add to cart button or a successful HTTP response. Product name, seller, price, regional inventory, quantity limits, and checkout availability must be checked at the retailer. Marketplace offers are not independently seller-verified.
 
@@ -78,4 +78,4 @@ Monitors intentionally pause on app restart. Review and resume them explicitly. 
 
 `npm test` runs 18 tests covering stock transitions, exact matching, schedules, cancellation, persistence, HTTP workflows, product URL validation, unknown/challenge handling, price ceilings, partial product failures, retry backoff, reminders, and desktop session/link security.
 
-A real Electron desktop smoke test was run on Linux under a virtual display. It exercises the Pokémon demo, release planning, scheduled groups, notification settings, the isolated renderer, and close-to-tray behavior. This does not establish Windows-native toast delivery or successful retail checkout. Live retailer access remains blocked and unverified.
+A real Electron desktop smoke test was run on Linux under a virtual display. It exercises the Pokémon demo, release planning, scheduled groups, notification settings, the isolated renderer, and close-to-tray behavior. This does not establish Windows-native toast delivery or successful retail checkout. Pokémon Center stock reads are blocked by retailer verification; live product monitoring remains unverified.

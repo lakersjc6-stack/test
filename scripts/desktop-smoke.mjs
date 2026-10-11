@@ -5,6 +5,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import electronExecutable from 'electron';
 import { fileURLToPath } from 'node:url';
+process.on('uncaughtExceptionMonitor', error => {
+  if (process.env.GITHUB_ACTIONS) console.error('::error title=Desktop smoke failure::' + String(error.stack || error).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A'));
+});
 const root = fileURLToPath(new URL('..', import.meta.url));
 const testDirectory = await mkdtemp(join(tmpdir(), 'summit-desktop-smoke-'));
 const environment = { ...process.env, SUMMIT_DESKTOP_DATA_DIR: testDirectory };

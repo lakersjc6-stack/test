@@ -20,6 +20,7 @@ test('stock parser distinguishes explicit in-stock, preorder, sold-out, and unkn
   assert.equal(parseRetailerProduct(html('OutOfStock'), target).variants[0].available, false);
   assert.throws(() => parseRetailerProduct('<h1>Add to cart</h1>', target), /unambiguous/);
   assert.throws(() => parseRetailerProduct(html('InStock') + '<h1>Verify you are human</h1>', target), /verification/);
+  assert.throws(() => parseRetailerProduct('<h1>Request unsuccessful. Incapsula incident ID: demo</h1>', target), /verification/);
   assert.throws(() => parseRetailerProduct(html('InStock').replace('Pokémon TCG Elite Trainer Box', 'Running shoes'), target), /Pokémon products only/);
   assert.throws(() => parseRetailerProduct(html('InStock').replace(target, 'https://www.target.com/p/other/-/A-99999999'), target), /unambiguous/);
 });
