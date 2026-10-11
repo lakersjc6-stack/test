@@ -21,7 +21,15 @@ jobs:
       - name: Verify real desktop workflows
         run: npm run test:desktop
       - name: Build Windows installer
-        run: npm run build:win
+        shell: pwsh
+        run: |
+          npm run build:win 2>&1 | Tee-Object -Variable buildLog
+          $buildExit = $LASTEXITCODE
+          if ($buildExit -ne 0) {
+            $message = ($buildLog | Select-Object -Last 40 | Out-String).Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Output "::error title=Windows packaging failed::$message"
+          }
+          exit $buildExit
       - name: Record installer checksum
         shell: pwsh
         run: |
